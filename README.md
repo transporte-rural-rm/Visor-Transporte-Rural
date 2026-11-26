@@ -1,4 +1,4 @@
-# Visor de Transporte Rural RM
+# Transporte Rural RM
 
 Visor web (Leaflet) de los recorridos de buses rurales y subsidiados de la Región Metropolitana, corregidos sobre la red vial (octubre 2026). Información referencial, no oficial del MTT.
 
@@ -24,3 +24,7 @@ Abrir `index.html` con doble clic en el computador no funciona (el navegador blo
 ## Paradas
 
 `datos/paradas.geojson` se genera con `visor_web/scripts/v_paradas.py` a partir de los Excel de `visor_web/fuentes/paradas/` (columnas stop_id, stop_name, lines, Código, Latitud, Longitud, Descripción). Para cargar más paradas: dejar el nuevo Excel en esa carpeta, volver a correr el script y subir `datos/paradas.geojson`. En la columna `lines`, Inbound = Ida y Outbound = Regreso.
+
+## Transporte de elecciones (SET)
+
+40 servicios SET (KMZ SET_2025_RM, 26-11-2026) corregidos sobre la red vial; el recorrido muestra las localidades atendidas. Script: scripts/v_agregar_set.py (fuente en fuentes/set/). SET0196 queda fuera hasta revisarlo. Los SET no se asocian a paradas.

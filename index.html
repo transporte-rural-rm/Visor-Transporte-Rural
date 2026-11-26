@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Visor de Transporte Rural RM</title>
+<title>Transporte Rural RM</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap">
@@ -860,14 +860,14 @@ main{position:relative;min-width:0;min-height:0}
 <div class="app">
   <aside>
     <div class="head">
-      <div class="toprow"><div class="eyebrow">Información referencial · oct. 2026</div><button class="ayuda-btn" id="ayuda-btn" aria-haspopup="dialog">Cómo usar</button></div>
-      <h1>Transporte rural Región Metropolitana</h1>
-      <p class="sub">Recorridos de buses rurales, de perímetro de exclusión, de electromovilidad y subsidiados. Toca el mapa o busca tu localidad para ver el servicio más cercano.</p>
+      <div class="toprow"><div class="eyebrow">Información referencial · nov. 2026</div><button class="ayuda-btn" id="ayuda-btn" aria-haspopup="dialog">Cómo usar</button></div>
+      <h1>Transporte Rural RM</h1>
+      <p class="sub">Recorridos de buses rurales, de perímetro de exclusión, de electromovilidad, subsidiados y de transporte de elecciones (SET). Toca el mapa o busca tu localidad para ver el servicio más cercano.</p>
       <div class="search"><input id="q" type="search" placeholder="Buscar servicio, operador, comuna o localidad" aria-label="Buscar servicio, operador, comuna o localidad" autocomplete="off"></div>
       <div class="fcom"><label for="fcom">Comuna</label><select id="fcom"><option value="">Todas las comunas</option></select><button class="x" id="fcom-x" hidden>Quitar</button></div>
     </div>
     <div class="list" id="list"><div class="empty" id="cargando">Cargando recorridos…</div></div>
-    <div class="foot">Visor referencial, no oficial del Ministerio de Transportes. Recorridos aproximados, actualizados a octubre de 2026. <button class="link" id="acerca-btn">Fuentes y detalles</button></div>
+    <div class="foot">Visor referencial, no oficial del Ministerio de Transportes. Recorridos aproximados, actualizados a noviembre de 2026. <button class="link" id="acerca-btn">Fuentes y detalles</button></div>
   </aside>
   <dialog id="ayuda" aria-labelledby="ayuda-t">
   <div class="dlg">
@@ -908,10 +908,10 @@ main{position:relative;min-width:0;min-height:0}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 (async function(){
-const CATMAP={'Rural corriente':'rc','Rural periférico':'rp','Perímetro Sur':'ps','Perímetro Surponiente':'pso','Electromovilidad':'em','CTA':'cta','CTR':'ctr','CTE':'cte'};
+const CATMAP={'Rural corriente':'rc','Rural periférico':'rp','Perímetro Sur':'ps','Perímetro Surponiente':'pso','Electromovilidad':'em','CTA':'cta','CTR':'ctr','CTE':'cte','SET':'set'};
 let BASE,POIS,RUTAS;
 try{
-  const DV='2026-11-10c';  // version de los datos: cambiarla al actualizar datos/ para que el navegador no use archivos antiguos
+  const DV='2026-11-26a';  // version de los datos: cambiarla al actualizar datos/ para que el navegador no use archivos antiguos
   const get=u=>fetch(u+(u.includes('?')?'&':'?')+'v='+DV,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(u);return r.json()});
   const [rut,com,per,vias,loc]=await Promise.all(['rutas','comunas','perimetros','vias','localidades'].map(n=>get('datos/'+n+'.geojson')));
   window.PAR=await get('datos/paradas.geojson').catch(()=>({features:[],orden:{}}));
@@ -920,8 +920,8 @@ try{
   RUTAS={features:rut.features.filter(f=>CATMAP[f.properties.categoria]).map(f=>{const p=f.properties;return {type:'Feature',geometry:f.geometry,properties:{c:CATMAP[p.categoria],s:String(p.servicio),n:p.nombre||'',o:p.operador||'',d:p.sentido||'',r:p.recorrido||'',m:p.comunas||'',f:p.cf||p.comunas||'',co:p.co||'',fo:p.folio||'',e:p.est||'',st:p.estado||'',k:+p.km||0,z:p.zona||''}}})};
 }catch(e){document.getElementById('list').innerHTML='<div class="empty">No se pudieron cargar los datos del mapa. Si abriste el archivo directamente desde tu computador, el navegador bloquea la carga: súbelo a GitHub Pages o ábrelo con un servidor local.</div>';return}
 document.getElementById('cargando')?.remove();
-const SUP=[{id:'rur',name:'Buses rurales',cats:['rc','rp']},{id:'pex',name:'Perímetro de exclusión',cats:['ps','pso']},{id:'em',name:'Electromovilidad',cats:['em']},{id:'sub',name:'Servicios subsidiados',full:'CTA, CTR y CTE',cats:['cta','ctr','cte']}];
-const CATS={rc:{name:'Rural corriente',col:'#0b7a5a'},rp:{name:'Rural periférico',col:'#1d5fd1'},ps:{name:'Perímetro Sur',full:'Perímetro de exclusión',col:'#b91c1c'},pso:{name:'Perímetro Surponiente',full:'Perímetro de exclusión',col:'#0e7490'},em:{name:'Electromovilidad',full:'Buses eléctricos',col:'#65a30d'},cta:{name:'CTA',full:'Conectividad Terrestre Aislada',col:'#7c3aed'},ctr:{name:'CTR',full:'Conectividad Rural',col:'#db2777'},cte:{name:'CTE',full:'Transporte escolar',col:'#d97706'}};
+const SUP=[{id:'rur',name:'Buses rurales',cats:['rc','rp']},{id:'pex',name:'Perímetro de exclusión',cats:['ps','pso']},{id:'em',name:'Electromovilidad',cats:['em']},{id:'sub',name:'Servicios subsidiados',full:'CTA, CTR y CTE',cats:['cta','ctr','cte']},{id:'set',name:'Transporte de elecciones',full:'SET',cats:['set']}];
+const CATS={rc:{name:'Rural corriente',col:'#0b7a5a'},rp:{name:'Rural periférico',col:'#1d5fd1'},ps:{name:'Perímetro Sur',full:'Perímetro de exclusión',col:'#b91c1c'},pso:{name:'Perímetro Surponiente',full:'Perímetro de exclusión',col:'#0e7490'},em:{name:'Electromovilidad',full:'Buses eléctricos',col:'#65a30d'},cta:{name:'CTA',full:'Conectividad Terrestre Aislada',col:'#7c3aed'},ctr:{name:'CTR',full:'Conectividad Rural',col:'#db2777'},cte:{name:'CTE',full:'Transporte escolar',col:'#d97706'},set:{name:'SET',full:'Servicios de Transporte de Elecciones',col:'#92400e'}};
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const cap=n=>(n.charAt(0)+n.slice(1).toLowerCase()).replace('ds212','DS212');
 const tc=n=>n.toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase()).replace(/ (De|Del) /g,m=>m.toLowerCase());
@@ -960,7 +960,7 @@ const baseW=c=>c==='cte'?2:2.6;
 Object.values(svcs).forEach(s=>{s.col=CATS[s.c].col;s.lines=s.feats.map(f=>{const l=L.geoJSON(f,{style:()=>({renderer:rend.rut,color:s.col,weight:baseW(s.c),opacity:.85,lineCap:'round',lineJoin:'round'})});l.on('click',e=>{L.DomEvent.stop(e);select(s.id,null)});l.addTo(groups[s.c]);l._p=f.properties;return l})});
 map.fitBounds(L.geoJSON(BASE.com).getBounds(),{padding:[10,10]});lbl();
 // capas
-const vis={rc:true,rp:true,ps:true,pso:true,em:true,cta:true,ctr:true,cte:true,vias:true,per:false,com:true,loc:false,esc:false,par:true};
+const vis={rc:true,rp:true,ps:true,pso:true,em:true,cta:true,ctr:true,cte:true,set:true,vias:true,per:false,com:true,loc:false,esc:false,par:true};
 const extra={vias:vias,per:perim,com:{addTo:m=>{comunas.addTo(m);lblLayer.addTo(m)},remove:()=>{comunas.remove();lblLayer.remove()}}};
 const mk=(k,name,sw,box,cont)=>{const b=document.createElement('button');b.className='chip';b.id='lay-'+k;b.setAttribute('aria-pressed',vis[k]);b.innerHTML='<span class="sw'+(box===1?' box':box===2?' pt':'')+'" style="background:'+sw+'"></span>'+name;b.onclick=()=>{vis[k]=!vis[k];b.setAttribute('aria-pressed',vis[k]);const g=groups[k]||extra[k]||null;if(k==='loc'||k==='esc'){poiVis();render();return}vis[k]?g.addTo(map):g.remove();if(k==='per')leg.hidden=!vis.per;render()};cont.appendChild(b)};
 const lr=document.getElementById('layers-rutas'),lc=document.getElementById('layers');

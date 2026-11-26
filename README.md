@@ -1,5 +1,7 @@
 # Transporte Rural RM
 
+Dirección pública: https://transporte-rural-rm.github.io/Visor-Transporte-Rural/ (organización de GitHub transporte-rural-rm, desde el 26-11-2026).
+
 Visor web (Leaflet) de los recorridos de buses rurales y subsidiados de la Región Metropolitana, corregidos sobre la red vial (octubre 2026). Información referencial, no oficial del MTT.
 
 ## Archivos

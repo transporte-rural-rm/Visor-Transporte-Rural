@@ -836,7 +836,7 @@ main{position:relative;min-width:0;min-height:0}
 .ficha .close{font:inherit;font-size:22px;line-height:1;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:4px 8px}
 .itl{margin:-4px 0 6px 52px;font-size:13px}.cat .itl summary{display:list-item;list-style:revert;cursor:pointer;color:var(--sel);font-weight:600;font-size:13px;padding:2px 0}.itl[open] summary{margin-bottom:4px}
 .itl button{font:inherit;margin:0 4px 4px 0;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}.itl button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
-.pars li button{vertical-align:top}
+.pars li button{vertical-align:top}.pars .gris{font-size:13px;color:var(--muted);margin:8px 0 0}
 .its{padding:0 16px 10px}.its summary{cursor:pointer;font-weight:700;color:var(--sel);margin-bottom:6px}.its .sentidos{padding:0}
 .sentidos{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 14px;max-height:132px;overflow:auto}
 .sentidos button{flex:1 1 auto;white-space:nowrap;font:inherit;font-size:15px;padding:8px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
@@ -916,7 +916,7 @@ main{position:relative;min-width:0;min-height:0}
 const CATMAP={'Rural corriente':'rc','Rural periférico':'rp','Perímetro Sur':'ps','Perímetro Surponiente':'pso','Electromovilidad':'em','CTA':'cta','CTR':'ctr','CTE':'cte','SET':'set'};
 let BASE,POIS,RUTAS;
 try{
-  const DV='2026-11-26c';  // version de los datos: cambiarla al actualizar datos/ para que el navegador no use archivos antiguos
+  const DV='2026-11-26d';  // version de los datos: cambiarla al actualizar datos/ para que el navegador no use archivos antiguos
   const get=u=>fetch(u+(u.includes('?')?'&':'?')+'v='+DV,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(u);return r.json()});
   const [rut,com,per,vias,loc]=await Promise.all(['rutas','comunas','perimetros','vias','localidades'].map(n=>get('datos/'+n+'.geojson')));
   window.PAR=await get('datos/paradas.geojson').catch(()=>({features:[],orden:{}}));
@@ -992,8 +992,10 @@ function parada(i){const f=PAR.features[i],p=f.properties;clear();
 function parSel(s,sel){if(selParL){selParL.remove();selParL=null}if(!PAR.features.length)return [];
   const seen=new Set(),lst=[];  // paradas de los trazados seleccionados (cada trazado tiene sus paradas por sentido y lado de la calle)
   sel.forEach(l=>(PAR.orden[l._p.n]||PAR.orden[l._p.s+'|'+l._p.d]||[]).forEach(i=>{if(!seen.has(i)){seen.add(i);lst.push(i)}}));
-  PAR._sel=lst;if(!lst.length)return [];
-  selParL=L.layerGroup(lst.map(i=>{const f=PAR.features[i];const m=L.circleMarker(f._ll,{renderer:parR,radius:5.5,color:s.col,weight:2.5,fillColor:'#fff',fillOpacity:1});m.bindTooltip(esc(f.properties.c));m.on('click',e=>{L.DomEvent.stop(e);parada(i)});return m})).addTo(map);
+  const gr=[],sg=new Set(lst);sel.forEach(l=>((PAR.cerca||{})[l._p.n]||[]).forEach(i=>{if(!sg.has(i)){sg.add(i);gr.push(i)}}));
+  PAR._sel=lst.concat(gr);PAR._gris=gr.length;if(!lst.length&&!gr.length)return [];
+  const grisM=gr.map(i=>{const f=PAR.features[i];const m=L.circleMarker(f._ll,{renderer:parR,radius:4,color:'#8a8f8c',weight:2,fillColor:'#fff',fillOpacity:1});m.bindTooltip(esc(f.properties.c)+' · sin dato de este servicio');m.on('click',e=>{L.DomEvent.stop(e);parada(i)});return m});
+  selParL=L.layerGroup(grisM.concat(lst.map(i=>{const f=PAR.features[i];const m=L.circleMarker(f._ll,{renderer:parR,radius:5.5,color:s.col,weight:2.5,fillColor:'#fff',fillOpacity:1});m.bindTooltip(esc(f.properties.c));m.on('click',e=>{L.DomEvent.stop(e);parada(i)});return m}))).addTo(map);
   return lst}
 
 
@@ -1100,7 +1102,7 @@ function select(id,v,it){
      return '<dt>'+lab+'</dt><dd class="co">'+fl.map(f=>(fl.length>1?'<small>'+esc(f.properties.r||variant(f.properties))+'</small><br>':'')+esc(coOf(f).join(' → '))).join('<br>')+'</dd>'})()+
    (curIt?'<dt>Itinerario</dt><dd>'+esc(curIt)+' de '+its.length+'</dd>':'')+(sents.length?'<dt>Sentido</dt><dd>'+(curVar||sents.join(' y '))+'</dd>':(curVar?'<dt>Ruta</dt><dd>'+esc(curVar)+'</dd>':'<dt>Trazados</dt><dd>'+s.feats.length+'</dd>'))+
    '<dt>Largo</dt><dd>'+km.toFixed(1)+' km</dd></dl>'+
-   (pl.length?'<details class="pars"><summary>Paradas'+(sents.length?(curVar?' ('+curVar.toLowerCase()+')':' (ida y regreso)'):'')+': '+pl.length+'</summary><ol>'+pl.map(i=>'<li><button data-i="'+i+'"><b>'+esc(PAR.features[i].properties.c)+'</b> '+esc(PAR.features[i].properties.n)+'</button></li>').join('')+'</ol></details>':'');
+   (pl.length?'<details class="pars"><summary>Paradas'+(sents.length?(curVar?' ('+curVar.toLowerCase()+')':' (ida y regreso)'):'')+': '+pl.length+'</summary><ol>'+pl.map(i=>'<li><button data-i="'+i+'"><b>'+esc(PAR.features[i].properties.c)+'</b> '+esc(PAR.features[i].properties.n)+'</button></li>').join('')+'</ol>'+(PAR._gris?'<p class="gris">En gris en el mapa: '+PAR._gris+' paradas en el camino donde la planilla de paradas no registra este servicio.</p>':'')+'</details>':'');
   ficha.hidden=false;
   ficha.querySelectorAll('.pars button').forEach(b=>b.onclick=()=>{const f=PAR.features[+b.dataset.i];map.setView(f._ll,Math.max(map.getZoom(),16));f._m&&selParL&&selParL.eachLayer(m=>{if(m.getLatLng().equals(f._ll))m.openTooltip()})});
   document.getElementById('cerrar').onclick=clear;
@@ -1143,7 +1145,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')capas(false)});
 L.DomEvent.disableClickPropagation(cpP);L.DomEvent.disableScrollPropagation(cpP);L.DomEvent.disableClickPropagation(cpB);document.getElementById('acerca-btn').onclick=()=>abrir('acerca');
 // Registro de versiones: agregar arriba una entrada nueva en cada actualizacion publicada
 const VERS=[
- ['1.6','26-11-2026','Servicios de Transporte de Elecciones (SET, 41 servicios). Paradas actualizadas al 25-11-2026 (3.565 en total). Nuevo nombre: Transporte Rural RM.'],
+ ['1.7','26-11-2026','Al elegir un servicio se ven en gris las paradas de su camino que la planilla de paradas no registra para ese servicio. Se quitan las paradas de la carpeta ProvinciaSTGO_SB_PA.'],
+ ['1.6','26-11-2026','Servicios de Transporte de Elecciones (SET, 41 servicios). Paradas actualizadas al 25-11-2026. Nuevo nombre: Transporte Rural RM.'],
  ['1.5','10-11-2026','Paradas: capa, ficha de parada y paradas de cada servicio en orden, por sentido. Itinerarios y trazados desplegables en la lista.'],
  ['1.4','05-11-2026','Servicios subsidiados 2026: folio, ruta y establecimiento. CTE0970 y CTE1617. Grupos Perímetro de exclusión y Electromovilidad; se quitan los Buses COP. Comunas de origen y destino.'],
  ['1.3','03-11-2026','Lista agrupada, filtro por comuna y botón para ocultar la lista.'],

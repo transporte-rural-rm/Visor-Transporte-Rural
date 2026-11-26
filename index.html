@@ -819,6 +819,8 @@ dialog::backdrop{background:rgba(10,20,18,.5)}
 .svc small{color:var(--muted);font-size:14px}
 .svc .km{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
 .empty{padding:16px;color:var(--muted)}
+.vers{margin:0;padding-left:0;list-style:none;font-size:14px}.vers li{margin:0 0 10px}.vers b{display:block}
+.verctl{background:var(--panel,#fff);color:var(--muted);border:1px solid var(--line);border-radius:6px;font:inherit;font-size:12px;padding:3px 8px;cursor:pointer;opacity:.92}
 .foot{font-size:13px;color:var(--muted);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;border-top:1px solid var(--line)}
 main{position:relative;min-width:0;min-height:0}
 #map{position:absolute;inset:0;background:var(--map)}
@@ -867,7 +869,7 @@ main{position:relative;min-width:0;min-height:0}
       <div class="fcom"><label for="fcom">Comuna</label><select id="fcom"><option value="">Todas las comunas</option></select><button class="x" id="fcom-x" hidden>Quitar</button></div>
     </div>
     <div class="list" id="list"><div class="empty" id="cargando">Cargando recorridos…</div></div>
-    <div class="foot">Visor referencial, no oficial del Ministerio de Transportes. Recorridos aproximados, actualizados a noviembre de 2026. <button class="link" id="acerca-btn">Fuentes y detalles</button></div>
+    <div class="foot">Visor referencial, no oficial del Ministerio de Transportes. Recorridos aproximados, actualizados a noviembre de 2026. <span id="ver-foot"></span> <button class="link" id="acerca-btn">Fuentes y detalles</button></div>
   </aside>
   <dialog id="ayuda" aria-labelledby="ayuda-t">
   <div class="dlg">
@@ -887,7 +889,10 @@ main{position:relative;min-width:0;min-height:0}
       <li>Comunas y perímetros: mapa base MTT.</li>
       <li>Vías: OpenStreetMap. Localidades (búsqueda): Censo 2024 (INE).</li>
       <li>Mapas de fondo: Esri.</li>
+      <li>Paradas: planillas de paradas RM (25-11-2026) y paradas rurales zona Red. Transporte de elecciones: KMZ SET 2025.</li>
     </ul>
+    <h3 id="versiones">Versiones</h3>
+    <ul class="vers" id="vers-lista"></ul>
   </div>
 </dialog>
   <main><div id="map" role="application" aria-label="Mapa de recorridos"></div><div class="ficha" id="ficha" hidden></div>
@@ -911,7 +916,7 @@ main{position:relative;min-width:0;min-height:0}
 const CATMAP={'Rural corriente':'rc','Rural periférico':'rp','Perímetro Sur':'ps','Perímetro Surponiente':'pso','Electromovilidad':'em','CTA':'cta','CTR':'ctr','CTE':'cte','SET':'set'};
 let BASE,POIS,RUTAS;
 try{
-  const DV='2026-11-26a';  // version de los datos: cambiarla al actualizar datos/ para que el navegador no use archivos antiguos
+  const DV='2026-11-26b';  // version de los datos: cambiarla al actualizar datos/ para que el navegador no use archivos antiguos
   const get=u=>fetch(u+(u.includes('?')?'&':'?')+'v='+DV,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(u);return r.json()});
   const [rut,com,per,vias,loc]=await Promise.all(['rutas','comunas','perimetros','vias','localidades'].map(n=>get('datos/'+n+'.geojson')));
   window.PAR=await get('datos/paradas.geojson').catch(()=>({features:[],orden:{}}));
@@ -1136,6 +1141,18 @@ const capas=o=>{cpP.hidden=!o;cpB.setAttribute('aria-expanded',o)};
 cpB.onclick=()=>capas(cpP.hidden);document.getElementById('capas-x').onclick=()=>capas(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')capas(false)});
 L.DomEvent.disableClickPropagation(cpP);L.DomEvent.disableScrollPropagation(cpP);L.DomEvent.disableClickPropagation(cpB);document.getElementById('acerca-btn').onclick=()=>abrir('acerca');
+// Registro de versiones: agregar arriba una entrada nueva en cada actualizacion publicada
+const VERS=[
+ ['1.6','26-11-2026','Servicios de Transporte de Elecciones (SET, 41 servicios). Paradas actualizadas al 25-11-2026 y paradas rurales zona Red (4.015 en total). Nuevo nombre: Transporte Rural RM.'],
+ ['1.5','10-11-2026','Paradas: capa, ficha de parada y paradas de cada servicio en orden, por sentido. Itinerarios y trazados desplegables en la lista.'],
+ ['1.4','05-11-2026','Servicios subsidiados 2026: folio, ruta y establecimiento. CTE0970 y CTE1617. Grupos Perímetro de exclusión y Electromovilidad; se quitan los Buses COP. Comunas de origen y destino.'],
+ ['1.3','03-11-2026','Lista agrupada, filtro por comuna y botón para ocultar la lista.'],
+ ['1.2','02-11-2026','Nuevas versiones de CTR0250, CTA0568 y CTA0569.'],
+ ['1.1','29-10-2026','Buses de Perímetro Sur, Perímetro Surponiente y Electromovilidad. "Cerca de aquí" con radio de 2 km.'],
+ ['1.0','29-10-2026','Primera versión pública.']];
+document.getElementById('vers-lista').innerHTML=VERS.map(v=>'<li><b>Versión '+v[0]+' · '+v[1]+'</b>'+v[2]+'</li>').join('');
+document.getElementById('ver-foot').textContent='Versión '+VERS[0][0]+' ('+VERS[0][1]+').';
+const VC=L.control({position:'bottomright'});VC.onAdd=()=>{const b=L.DomUtil.create('button','verctl');b.type='button';b.textContent='Versión '+VERS[0][0]+' · actualizado '+VERS[0][1];b.title='Ver el historial de cambios';L.DomEvent.disableClickPropagation(b);b.onclick=()=>abrir('versiones');return b};VC.addTo(map);
 document.getElementById('ayuda-x').onclick=()=>dlg.close();
 function clear(){halo([]);if(selParL){selParL.remove();selParL=null}setTimeout(()=>typeof parVis==='function'&&parVis());if(cercaM){cercaM.remove();cercaM=null}cur=null;curVar=null;curIt=null;ficha.hidden=true;Object.values(svcs).forEach(o=>o.lines.forEach(l=>l.setStyle({opacity:.85,weight:baseW(o.c)})));render()}
 const parCerca=pt=>{if(!vis.par||!PAR.features.length||map.getZoom()<PAR_ZOOM)return -1;let bi=-1,bd=24;const vis_=selParL?new Set(PAR._sel):null;PAR.features.forEach((f,i)=>{if(cur&&!(vis_&&vis_.has(i)))return;const d0=map.latLngToContainerPoint(f._ll).distanceTo(pt);if(d0>=24)return;const d=d0-(Object.keys(f.properties.s).length?8:0);if(d<bd){bd=d;bi=i}});return bi};

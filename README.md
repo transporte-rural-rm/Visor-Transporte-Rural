@@ -29,4 +29,4 @@ Abrir `index.html` con doble clic en el computador no funciona (el navegador blo
 
 ## Transporte de elecciones (SET)
 
-40 servicios SET (KMZ SET_2025_RM, 26-11-2026) corregidos sobre la red vial; el recorrido muestra las localidades atendidas. Script: scripts/v_agregar_set.py (fuente en fuentes/set/). SET0196 queda fuera hasta revisarlo. Los SET no se asocian a paradas.
+41 servicios SET (KMZ SET_2025_RM, 26-11-2026) corregidos sobre la red vial; el recorrido muestra las localidades atendidas. Script: scripts/v_agregar_set.py (fuente en fuentes/set/). Los SET no se asocian a paradas.
